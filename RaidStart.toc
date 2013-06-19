@@ -1,0 +1,9 @@
+## Interface: 50300
+## Title : RaidStart
+## Notes: Raid group formation tool
+## Author: Cal Henderson (Bees on Hyjal-US)
+## Version: 1.0
+## Dependencies: 
+## SavedVariablesPerCharacter: RaidStartPrefs
+
+RaidStart.lua
