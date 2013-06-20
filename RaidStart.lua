@@ -13,7 +13,7 @@ RaidStart.default_options = {
 	frameW = 200,
 	frameH = 200,
 };
-
+RaidStart.info = {};
 
 function RaidStart.OnReady()
 
@@ -64,6 +64,8 @@ function RaidStart.OnEvent(frame, event, ...)
 	if (event == 'PLAYER_LOGIN') then
 
 		RaidStart.fully_loaded = true;
+
+		RaidStart.RebuildFrame();
 		return;
 	end
 
@@ -106,14 +108,6 @@ function RaidStart.CreateUIFrame()
 	RaidStart.Cover:SetScript("OnDragStop", RaidStart.OnDragStop);
 	RaidStart.Cover:SetScript("OnClick", RaidStart.OnClick);
 
-	-- add a main label - just so we can show something
-	RaidStart.Label = RaidStart.Cover:CreateFontString(nil, "OVERLAY");
-	RaidStart.Label:SetPoint("CENTER", RaidStart.UIFrame, "CENTER", 2, 0);
-	RaidStart.Label:SetJustifyH("LEFT");
-	RaidStart.Label:SetFont([[Fonts\FRIZQT__.TTF]], 12, "OUTLINE");
-	RaidStart.Label:SetText(" ");
-	RaidStart.Label:SetTextColor(1,1,1,1);
-	RaidStart.SetFontSize(RaidStart.Label, 20);
 end
 
 function RaidStart.SetFontSize(string, size)
@@ -144,7 +138,65 @@ end
 function RaidStart.UpdateFrame()
 
 	-- update the main frame state here
-	RaidStart.Label:SetText(string.format("%d", GetTime()));
+end
+
+function RaidStart.RebuildFrame()
+
+	local members = {
+		"Fflur",
+		"Abdar",
+		"Jonymill",
+		"Emage",
+	};
+
+	RaidStart.ClearFrames();
+
+	local i, v;
+	local y = -8;
+
+	for i,v in ipairs(members) do
+
+		RaidStart.info[v] = {};
+		RaidStart.info[v].label = RaidStart.CreateLabel(v, 8, y);
+		RaidStart.info[v].status = RaidStart.CreateLabel('Status', 100, y);
+		RaidStart.info[v].button = RaidStart.CreateButton('Invite', 130, y, 60)
+
+		y = y - 20;
+	end
+
+end
+
+function RaidStart.ClearFrames()
+end
+
+function RaidStart.CreateLabel(txt, x, y)
+
+	local lbl = RaidStart.Cover:CreateFontString(nil, "OVERLAY");
+	lbl:SetPoint("TOPLEFT", RaidStart.Cover, "TOPLEFT", x, y);
+	lbl:SetFont([[Fonts\FRIZQT__.TTF]], 12, "OUTLINE");
+	lbl:SetText(txt);
+	lbl:SetTextColor(1,1,1,1);
+	RaidStart.SetFontSize(lbl, 14);
+
+	return lbl;
+end
+
+function RaidStart.CreateButton(txt, x, y, w)
+
+	local btn = CreateFrame("Button", id, RaidStart.Cover, "UIPanelButtonTemplate");
+	btn:SetPoint("TOPLEFT", x, y);
+	btn:SetWidth(w);
+	btn:SetHeight(24);
+	--b:SetNormalTexture(texture);
+
+	btn.text = btn:GetFontString();
+	btn.text:SetPoint("LEFT", btn, "LEFT", 7, 0);
+	btn.text:SetPoint("RIGHT", btn, "RIGHT", -7, 0);
+	btn.text:SetText(txt);
+
+	btn:EnableMouse();
+
+	return btn;
 end
 
 
