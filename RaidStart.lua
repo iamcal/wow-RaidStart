@@ -14,6 +14,8 @@ RaidStart.default_options = {
 	frameH = 200,
 };
 RaidStart.info = {};
+RaidStart.last_check = 0;
+RaidStart.time_between_checks = 2;
 
 function RaidStart.OnReady()
 
@@ -27,6 +29,7 @@ function RaidStart.OnReady()
 	end
 
 	RaidStart.CreateUIFrame();
+	RaidStart.RebuildFrame();
 end
 
 function RaidStart.OnSaving()
@@ -48,6 +51,11 @@ function RaidStart.OnUpdate()
 		return;
 	end
 
+	if (RaidStart.last_check + RaidStart.time_between_checks < GetTime()) then
+		RaidStart.last_check = GetTime();
+		RaidStart.PeriodicUpdate();
+	end
+
 	RaidStart.UpdateFrame();
 end
 
@@ -64,14 +72,18 @@ function RaidStart.OnEvent(frame, event, ...)
 	if (event == 'PLAYER_LOGIN') then
 
 		RaidStart.fully_loaded = true;
-
-		RaidStart.RebuildFrame();
 		return;
 	end
 
 	if (event == 'PLAYER_LOGOUT') then
 		RaidStart.OnSaving();
 		return;
+	end
+
+	if (event == 'GROUP_ROSTER_UPDATE')then
+		if (RaidStart.fully_loaded) then
+			RaidStart.RefreshState();
+		end
 	end
 end
 
@@ -109,12 +121,28 @@ function RaidStart.CreateUIFrame()
 	RaidStart.Cover:SetScript("OnClick", RaidStart.OnClick);
 
 	RaidStart.ColorIn(RaidStart.Cover, 1, 0.5, 0, 0.5);
+
+	if (RaidStartPrefs.hide) then
+		RaidStart.ShutItDown();
+	else
+		RaidStart.StartItUp();
+	end
+end
+
+function RaidStart.StartItUp()
+	RaidStart.UIFrame:Show();
+	RaidStartPrefs.hide = false;
+end
+
+function RaidStart.ShutItDown()
+	RaidStart.UIFrame:Hide();
+	RaidStartPrefs.hide = true;
 end
 
 function RaidStart.ColorIn(frame, r, g, b, a)
 
-	frame.texture = frame:CreateTexture("ARTWORK");
-	frame.texture:SetAllPoints();
+	frame.texture = RaidStart.UIFrame:CreateTexture("ARTWORK");
+	frame.texture:SetAllPoints(frame);
 	frame.texture:SetTexture(r, g, b);
 	frame.texture:SetAlpha(a);
 end
@@ -156,6 +184,7 @@ function RaidStart.RebuildFrame()
 		"Abdar",
 		"Jonymill",
 		"Emage",
+		"Abejas",
 	};
 
 	RaidStart.ClearFrames();
@@ -168,7 +197,13 @@ function RaidStart.RebuildFrame()
 		RaidStart.info[v] = {};
 		RaidStart.info[v].label = RaidStart.CreateLabel(v, 8, y);
 		RaidStart.info[v].status = RaidStart.CreateLabel('Status', 100, y);
-		RaidStart.info[v].button = RaidStart.CreateButton('Invite', 100, y+4, 60)
+		RaidStart.info[v].button = RaidStart.CreateButton('Invite', 100, y+4, 60);
+		RaidStart.info[v].button:SetScript("OnClick", function()
+			InviteUnit(v);
+			RaidStart.info[v].last_invite = GetTime();
+			RaidStart.RefreshState();
+		end);
+		RaidStart.info[v].last_invite = 0;
 
 		y = y - 24;
 	end
@@ -179,6 +214,7 @@ function RaidStart.RebuildFrame()
 end
 
 function RaidStart.ClearFrames()
+
 end
 
 function RaidStart.CreateLabel(txt, x, y)
@@ -189,6 +225,8 @@ function RaidStart.CreateLabel(txt, x, y)
 	lbl:SetText(txt);
 	lbl:SetTextColor(1,1,1,1);
 	RaidStart.SetFontSize(lbl, 14);
+
+RaidStart.ColorIn(lbl, 0, 0, 1, 0.5);
 
 	return lbl;
 end
@@ -215,6 +253,115 @@ function RaidStart.CreateButton(txt, x, y, w)
 	return btn;
 end
 
+function RaidStart.PeriodicUpdate()
+
+	--print("RS Periodic");
+	RaidStart.RefreshState();
+end
+
+function RaidStart.RefreshState()
+
+	if (RaidStartPrefs.hide) then
+		return;
+	end
+
+	print("Refresh state");
+
+	--
+	-- convert to raid?
+	--
+
+	if (GetNumGroupMembers() > 0 and not IsInRaid() and UnitIsGroupLeader("player")) then
+		ConvertToRaid();
+	end
+
+
+	local num, i;
+
+	--
+	-- get list of people in group
+	--
+
+	local members = {};
+	num = GetNumGroupMembers();
+	for i=1, num do
+		local name = GetRaidRosterInfo(i);
+
+		--print("In group: "..name);
+		members[name] = 1;
+	end
+
+
+	--
+	-- get list of people online in guild
+	--
+
+	local onlines = {};
+	num = GetNumGuildMembers();
+	for i=1, num do
+		local name, _, _, _, _, _, _, _, online = GetGuildRosterInfo(i);
+		if (online) then
+
+			--print("Guildie online: "..name);
+			onlines[name] = 1;
+		end
+	end
+
+
+	--
+	-- update button/label status
+	--
+
+	local i, v;
+	for i,v in pairs(RaidStart.info) do
+
+		if (members[i]) then
+
+			RaidStart.info[i].status:Show();
+			RaidStart.info[i].status:SetText("In Group");
+			RaidStart.info[i].button:Hide();
+
+		elseif (not onlines[i]) then
+
+			RaidStart.info[i].status:Show();
+			RaidStart.info[i].status:SetText("Offline");
+			RaidStart.info[i].button:Hide();
+
+		else
+
+			local elapsed = GetTime() - RaidStart.info[i].last_invite;
+			if (elapsed < 10) then
+
+				RaidStart.info[i].status:Show();
+				RaidStart.info[i].status:SetText("Invited...");
+				RaidStart.info[i].button:Hide();
+
+			else
+
+				RaidStart.info[i].status:Hide();
+				RaidStart.info[i].button:Show();
+			end
+		end
+	end
+
+end
+
+--UnitIsGroupAssistant("name"
+--PromoteToAssistant("unit") -
+
+SLASH_RAIDSTART1 = '/rs';
+SLASH_RAIDSTART2 = '/raidstart';
+
+function SlashCmdList.RAIDSTART(msg, editBox)
+
+	if (RaidStartPrefs.hide) then
+
+		RaidStart.StartItUp();
+	else
+		RaidStart.ShutItDown();
+	end
+end
+
 
 RaidStart.EventFrame = CreateFrame("Frame");
 RaidStart.EventFrame:Show();
@@ -223,3 +370,4 @@ RaidStart.EventFrame:SetScript("OnUpdate", RaidStart.OnUpdate);
 RaidStart.EventFrame:RegisterEvent("ADDON_LOADED");
 RaidStart.EventFrame:RegisterEvent("PLAYER_LOGIN");
 RaidStart.EventFrame:RegisterEvent("PLAYER_LOGOUT");
+RaidStart.EventFrame:RegisterEvent("GROUP_ROSTER_UPDATE");
