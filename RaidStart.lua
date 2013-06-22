@@ -97,7 +97,7 @@ function RaidStart.CreateUIFrame()
 
 	-- create a button that covers the entire addon
 	RaidStart.Cover = CreateFrame("Button", nil, RaidStart.UIFrame);
-	RaidStart.Cover:SetFrameLevel(128);
+	--RaidStart.Cover:SetFrameLevel(128);
 	RaidStart.Cover:SetPoint("TOPLEFT", 0, 0);
 	RaidStart.Cover:SetWidth(_G.RaidStartPrefs.frameW);
 	RaidStart.Cover:SetHeight(_G.RaidStartPrefs.frameH);
@@ -108,6 +108,15 @@ function RaidStart.CreateUIFrame()
 	RaidStart.Cover:SetScript("OnDragStop", RaidStart.OnDragStop);
 	RaidStart.Cover:SetScript("OnClick", RaidStart.OnClick);
 
+	RaidStart.ColorIn(RaidStart.Cover, 1, 0.5, 0, 0.5);
+end
+
+function RaidStart.ColorIn(frame, r, g, b, a)
+
+	frame.texture = frame:CreateTexture("ARTWORK");
+	frame.texture:SetAllPoints();
+	frame.texture:SetTexture(r, g, b);
+	frame.texture:SetAlpha(a);
 end
 
 function RaidStart.SetFontSize(string, size)
@@ -159,11 +168,14 @@ function RaidStart.RebuildFrame()
 		RaidStart.info[v] = {};
 		RaidStart.info[v].label = RaidStart.CreateLabel(v, 8, y);
 		RaidStart.info[v].status = RaidStart.CreateLabel('Status', 100, y);
-		RaidStart.info[v].button = RaidStart.CreateButton('Invite', 130, y, 60)
+		RaidStart.info[v].button = RaidStart.CreateButton('Invite', 100, y+4, 60)
 
-		y = y - 20;
+		y = y - 24;
 	end
 
+	--RaidStart.UIFrame:SetWidth();
+	RaidStart.UIFrame:SetHeight(0-y);
+	RaidStart.Cover:SetAllPoints(RaidStart.UIFrame);
 end
 
 function RaidStart.ClearFrames()
@@ -186,7 +198,7 @@ function RaidStart.CreateButton(txt, x, y, w)
 	local btn = CreateFrame("Button", id, RaidStart.Cover, "UIPanelButtonTemplate");
 	btn:SetPoint("TOPLEFT", x, y);
 	btn:SetWidth(w);
-	btn:SetHeight(24);
+	btn:SetHeight(20);
 	--b:SetNormalTexture(texture);
 
 	btn.text = btn:GetFontString();
@@ -194,6 +206,10 @@ function RaidStart.CreateButton(txt, x, y, w)
 	btn.text:SetPoint("RIGHT", btn, "RIGHT", -7, 0);
 	btn.text:SetText(txt);
 
+	btn:RegisterForClicks("AnyDown");
+	btn:SetScript("OnClick", function()
+		print("btn click");
+	end);
 	btn:EnableMouse();
 
 	return btn;
