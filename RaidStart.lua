@@ -180,11 +180,15 @@ end
 function RaidStart.RebuildFrame()
 
 	local members = {
-		"Fflur",
 		"Abdar",
-		"Jonymill",
+		"Danji",
 		"Emage",
-		"Abejas",
+		"Fflur",
+		"Jonymill",
+		"Lifa",
+		"Pashi",
+		"Viacheslav",
+		"Bainbridge",
 	};
 
 	RaidStart.ClearFrames();
