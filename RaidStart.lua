@@ -189,6 +189,9 @@ function RaidStart.RebuildFrame()
 		"Pashi",
 		"Viacheslav",
 		"Bainbridge",
+		"Angelswifer",
+		"Elysium",
+		"Selise",
 	};
 
 	RaidStart.ClearFrames();
@@ -297,7 +300,7 @@ function RaidStart.RefreshState()
 
 
 	--
-	-- get list of people online in guild
+	-- get list of people online in guild & friends
 	--
 
 	local onlines = {};
@@ -307,6 +310,15 @@ function RaidStart.RefreshState()
 		if (online) then
 
 			--print("Guildie online: "..name);
+			onlines[name] = 1;
+		end
+	end
+	num = GetNumFriends();
+	for i=1, num do
+		local name, _, _, _, online = GetFriendInfo(i);
+		if (online) then
+
+			--print("Friend online: "..name);
 			onlines[name] = 1;
 		end
 	end
