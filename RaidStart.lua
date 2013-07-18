@@ -120,7 +120,7 @@ function RaidStart.CreateUIFrame()
 	RaidStart.Cover:SetScript("OnDragStop", RaidStart.OnDragStop);
 	RaidStart.Cover:SetScript("OnClick", RaidStart.OnClick);
 
-	RaidStart.ColorIn(RaidStart.Cover, 1, 0.5, 0, 0.5);
+	RaidStart.ColorIn(RaidStart.Cover, 0, 0, 0, 0.5);
 
 	if (RaidStartPrefs.hide) then
 		RaidStart.ShutItDown();
@@ -188,10 +188,10 @@ function RaidStart.RebuildFrame()
 		"Lifa",
 		"Pashi",
 		"Viacheslav",
+		"Aratfu",
 		"Bainbridge",
 		"Angelswifer",
 		"Elysium",
-		"Selise",
 	};
 
 	RaidStart.ClearFrames();
@@ -272,7 +272,7 @@ function RaidStart.RefreshState()
 		return;
 	end
 
-	print("Refresh state");
+	--print("Refresh state");
 
 	--
 	-- convert to raid?
@@ -295,7 +295,9 @@ function RaidStart.RefreshState()
 		local name = GetRaidRosterInfo(i);
 
 		--print("In group: "..name);
-		members[name] = 1;
+		if (name) then
+			members[name] = 1;
+		end
 	end
 
 
@@ -335,12 +337,14 @@ function RaidStart.RefreshState()
 
 			RaidStart.info[i].status:Show();
 			RaidStart.info[i].status:SetText("In Group");
+			RaidStart.info[i].status.texture:SetTexture(0,1,0);
 			RaidStart.info[i].button:Hide();
 
 		elseif (not onlines[i]) then
 
 			RaidStart.info[i].status:Show();
 			RaidStart.info[i].status:SetText("Offline");
+			RaidStart.info[i].status.texture:SetTexture(0.5,0.5,0.5);
 			RaidStart.info[i].button:Hide();
 
 		else
@@ -350,6 +354,7 @@ function RaidStart.RefreshState()
 
 				RaidStart.info[i].status:Show();
 				RaidStart.info[i].status:SetText("Invited...");
+				RaidStart.info[i].status.texture:SetTexture(1,1,0);
 				RaidStart.info[i].button:Hide();
 
 			else
